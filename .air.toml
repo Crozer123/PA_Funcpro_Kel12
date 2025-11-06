@@ -1,0 +1,15 @@
+# File: .air.toml
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+# UBAH BARIS INI: Hapus '{{.exe}}' dan tulis '.exe' secara manual
+cmd = "go build -o ./tmp/main.exe ./cmd/server/main.go"
+
+# UBAH BARIS INI: Hapus '{{.exe}}' dan tulis '.exe' secara manual
+bin = "tmp/main.exe"
+
+[watch]
+include_ext = ["go", "toml"]
+exclude_dir = ["tmp"]
