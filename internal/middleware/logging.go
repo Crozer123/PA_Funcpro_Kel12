@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"net/http"
 	"time"
+
 	"github.com/fatih/color"
 )
 
@@ -27,5 +28,12 @@ func Logging(next http.Handler) http.Handler {
 		}
 	}
 	return http.HandlerFunc(fn)
+}
 
+func HandleError(message string) {
+	color.Red("[ERROR] %s", message)
+}
+
+func HandleLog(message string) {
+	color.Blue("%s", message)
 }
