@@ -12,47 +12,80 @@ import (
 var jwtSecret = []byte("rahasia-negara-api")
 
 type contextKey string
+
 const UserIDKey contextKey = "userID"
 
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
-			response.NewAPIError(http.StatusUnauthorized, "Token tidak ditemukan")
-			return
-		}
-
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			response.NewAPIError(http.StatusUnauthorized, "Format token salah")
-			return
-		}
-
-		tokenString := parts[1]
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return jwtSecret, nil
-		})
-
-		if err != nil || !token.Valid {
-			response.NewAPIError(http.StatusUnauthorized, "Token tidak valid atau kadaluwarsa")
-			return
-		}
-
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			response.NewAPIError(http.StatusUnauthorized, "Token claims invalid")
-			return
-		}
-
-		userID, ok := claims["user_id"].(string)
-		if !ok {
-			response.NewAPIError(http.StatusUnauthorized, "User ID tidak ditemukan di token")
+		userID, err := validateToken(r)
+		if err != nil {
+			response.WriteJSON(w, http.StatusUnauthorized, "Unauthorized: "+err.Error(), nil)
 			return
 		}
 
 		ctx := context.WithValue(r.Context(), UserIDKey, userID)
 		next(w, r.WithContext(ctx))
 	}
+}
+
+func AuthMiddlewareOptional(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+
+		if authHeader == "" {
+			next(w, r)
+			return
+		}
+
+		userID, err := validateToken(r)
+		if err != nil {
+			response.WriteJSON(w, http.StatusUnauthorized, "Token Invalid/Expired: "+err.Error(), nil)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), UserIDKey, userID)
+		next(w, r.WithContext(ctx))
+	}
+}
+
+func validateToken(r *http.Request) (string, error) {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return "", jwt.ErrTokenMalformed
+	}
+
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return "", jwt.ErrTokenMalformed
+	}
+
+	tokenString := parts[1]
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, jwt.ErrSignatureInvalid
+		}
+		return jwtSecret, nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	if !token.Valid {
+		return "", jwt.ErrTokenSignatureInvalid
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", jwt.ErrTokenInvalidClaims
+	}
+
+	userID, ok := claims["user_id"].(string)
+	if !ok {
+		return "", jwt.ErrTokenInvalidClaims
+	}
+
+	return userID, nil
 }
 
 func GetUserIDFromContext(ctx context.Context) string {
