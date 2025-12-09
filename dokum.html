@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agro API Documentation & Tester</title>
+    <title>Agro API Documentation & Tester (Fixed)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -12,14 +12,18 @@
             --bg-input: #2c2c2c;
             --text-main: #e0e0e0;
             --text-muted: #a0a0a0;
-            --primary: #00e676; /* Hijau Tani */
-            --accent: #2979ff;  /* Biru Link */
+            --primary: #00e676;
+            --accent: #2979ff;
+            --success: #00e676;
+            --error: #f44336;
+            --warning: #ff9800;
+            --border: #333;
+            
             --method-get: #61affe;
             --method-post: #49cc90;
             --method-put: #fca130;
             --method-patch: #50e3c2;
             --method-delete: #f93e3e;
-            --border: #333;
         }
 
         body {
@@ -33,7 +37,7 @@
             overflow: hidden;
         }
 
-        /* Sidebar */
+        /* Sidebar Styling */
         aside {
             background-color: #181818;
             border-right: 1px solid var(--border);
@@ -48,7 +52,7 @@
             background: var(--bg-card);
             padding: 15px;
             border-radius: 8px;
-            border: 1px solid var(--primary);
+            border: 1px solid var(--border);
         }
 
         .token-display {
@@ -62,6 +66,7 @@
             max-height: 60px;
             overflow-y: auto;
             display: none;
+            font-family: monospace;
         }
 
         .nav-header {
@@ -71,6 +76,7 @@
             margin-bottom: 10px;
             font-weight: bold;
             letter-spacing: 1px;
+            margin-top: 15px;
         }
 
         .nav-item {
@@ -82,8 +88,19 @@
             margin-bottom: 2px;
             font-size: 0.9rem;
             cursor: pointer;
+            transition: 0.2s;
         }
-        .nav-item:hover { background: var(--bg-input); }
+        .nav-item:hover { background: #333; color: var(--primary); }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            text-align: center;
+            font-weight: bold;
+        }
+        .status-ok { background: rgba(0, 230, 118, 0.1); color: var(--success); border: 1px solid var(--success); }
+        .status-no { background: rgba(244, 67, 54, 0.1); color: var(--error); border: 1px solid var(--error); }
 
         /* Main Content */
         main {
@@ -92,66 +109,76 @@
             scroll-behavior: smooth;
         }
 
+        h1 { margin-top: 0; color: var(--primary); }
+
         .section-title {
             border-bottom: 2px solid var(--border);
             padding-bottom: 10px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             margin-top: 40px;
-            color: var(--primary);
+            color: #fff;
+            font-size: 1.5rem;
         }
-        .section-title:first-child { margin-top: 0; }
-
+        
         .api-card {
             background: var(--bg-card);
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 25px;
-            border-left: 5px solid transparent;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 5px solid #555;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
 
         .api-card.get { border-left-color: var(--method-get); }
         .api-card.post { border-left-color: var(--method-post); }
+        .api-card.put { border-left-color: var(--method-put); }
         .api-card.patch { border-left-color: var(--method-patch); }
         .api-card.delete { border-left-color: var(--method-delete); }
 
         .endpoint-header {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
             margin-bottom: 15px;
             flex-wrap: wrap;
         }
 
         .method-badge {
-            padding: 4px 8px;
+            padding: 5px 10px;
             border-radius: 4px;
             font-weight: bold;
+            font-size: 0.85rem;
             color: #000;
-            font-size: 0.8rem;
         }
         .get .method-badge { background: var(--method-get); }
         .post .method-badge { background: var(--method-post); }
+        .put .method-badge { background: var(--method-put); }
         .patch .method-badge { background: var(--method-patch); }
+        .delete .method-badge { background: var(--method-delete); color: #fff; }
 
         .url {
             font-family: 'Consolas', monospace;
             font-size: 1.1rem;
             color: var(--text-main);
+            word-break: break-all;
+        }
+        .id-param { color: var(--warning); }
+
+        .input-group { margin-bottom: 15px; }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.85em;
+            color: var(--text-muted);
         }
 
-        .desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px; }
-
-        /* Inputs */
-        .input-group { margin-bottom: 15px; }
-        label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px; }
-        
-        input, textarea {
+        input[type="text"], textarea, select, input[type="file"] {
             width: 100%;
             background: var(--bg-input);
             border: 1px solid var(--border);
             color: white;
-            padding: 8px;
+            padding: 10px;
             border-radius: 4px;
             font-family: 'Consolas', monospace;
             box-sizing: border-box;
@@ -169,8 +196,10 @@
             cursor: pointer;
             font-weight: bold;
             font-size: 0.9rem;
+            transition: 0.2s;
         }
-        button:hover { filter: brightness(1.1); }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        button.secondary { background-color: #444; color: #fff; }
 
         .response-box {
             background: #000;
@@ -182,58 +211,70 @@
             white-space: pre-wrap;
             display: none;
             border: 1px solid var(--border);
+            max-height: 400px;
+            overflow-y: auto;
         }
-        .response-box.success { border-color: var(--primary); color: #a5d6a7; }
-        .response-box.error { border-color: var(--method-delete); color: #ef9a9a; }
+        .response-box.success { border-color: var(--success); color: #a5d6a7; }
+        .response-box.error { border-color: var(--error); color: #ef9a9a; }
 
-        .id-param { color: var(--method-put); font-weight: bold; }
+        .preview-img {
+            max-width: 200px;
+            margin-top: 15px;
+            border-radius: 8px;
+            border: 2px solid var(--accent);
+            display: none;
+        }
     </style>
 </head>
+
 <body>
 
-    <!-- SIDEBAR -->
     <aside>
         <h2 style="color:white; margin:0;">🌱 Agro API</h2>
         
         <div class="auth-box">
-            <h4 style="margin:0 0 10px 0;">🔑 Auth Status</h4>
-            <div id="auth-status" style="color: #f44336; font-size: 0.9rem;">Belum Login</div>
+            <h4 style="margin:0 0 10px 0; color:var(--text-muted);">🔑 Auth Status</h4>
+            <div id="auth-status-container"></div>
+            
+            <label style="margin-top:10px;">Token (JWT):</label>
             <div id="token-display" class="token-display"></div>
-            <input type="text" id="manual-token" placeholder="Paste Token..." style="margin-top:10px; font-size:0.8rem;" onchange="saveTokenManual()">
+            
+            <input type="text" id="manual-token" placeholder="Paste Token disini..." style="margin-top:5px; font-size:0.8rem; height: 35px;">
+            
+            <div style="display: flex; gap: 5px; margin-top: 10px;">
+                <button type="button" onclick="saveTokenManual()" style="flex:1; font-size: 0.8rem;">Set Token</button>
+                <button type="button" onclick="logout()" class="secondary" style="flex:1; background:var(--error); font-size: 0.8rem;">Clear</button>
+            </div>
         </div>
 
-        <div>
+        <nav>
             <div class="nav-header">Users & Auth</div>
             <a href="#register" class="nav-item">Register</a>
             <a href="#login" class="nav-item">Login</a>
-            <a href="#get-me" class="nav-item">Get Me (Profile)</a>
-            <a href="#update-me" class="nav-item">Update Profile</a>
-        </div>
+            <a href="#get-me" class="nav-item">Get Profile</a>
 
-        <div>
+            <div class="nav-header">Marketplace</div>
+            <a href="#create-prod" class="nav-item">Create Product</a>
+            <a href="#upload-img" class="nav-item">Upload Image</a>
+            <a href="#detail-prod" class="nav-item">Detail Product</a>
+
             <div class="nav-header">Forum & QnA</div>
-            <a href="#feed" class="nav-item">Get Feed (All)</a>
             <a href="#create-q" class="nav-item">Create Question</a>
-            <a href="#detail-q" class="nav-item">Get Detail Question</a>
-            <a href="#answer-q" class="nav-item">Add Answer</a>
-            <a href="#like-q" class="nav-item">Like Question</a>
-            <a href="#fav-q" class="nav-item">Favorite Question</a>
-        </div>
+            <a href="#detail-q" class="nav-item">Detail + Answers</a>
+        </nav>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main>
+        <h1>🚀 API Documentation & Tester</h1>
 
-        <!-- SECTION: AUTH -->
-        <h2 class="section-title">Authentication & Users</h2>
+        <h2 class="section-title">1. User & Authentication</h2>
 
-        <!-- Register -->
         <div class="api-card post" id="register">
             <div class="endpoint-header">
                 <span class="method-badge">POST</span>
                 <span class="url">/api/v1/auth/register</span>
             </div>
-            <p class="desc">Mendaftar user baru.</p>
+            <p>Mendaftar user baru.</p>
             <div class="input-group">
                 <label>Body (JSON)</label>
                 <textarea id="body-register">{
@@ -242,17 +283,16 @@
   "password": "password123"
 }</textarea>
             </div>
-            <button onclick="sendRequest('register', 'POST', '/api/v1/auth/register')">Send Request</button>
+            <button type="button" onclick="sendRequest('register', 'POST', '/api/v1/auth/register', false, event)">Register</button>
             <div id="res-register" class="response-box"></div>
         </div>
 
-        <!-- Login -->
         <div class="api-card post" id="login">
             <div class="endpoint-header">
                 <span class="method-badge">POST</span>
                 <span class="url">/api/v1/auth/login</span>
             </div>
-            <p class="desc">Login untuk mendapatkan Token JWT. Token otomatis disimpan.</p>
+            <p>Login untuk mendapatkan Token JWT. Token otomatis disimpan.</p>
             <div class="input-group">
                 <label>Body (JSON)</label>
                 <textarea id="body-login">{
@@ -260,59 +300,102 @@
   "password": "password123"
 }</textarea>
             </div>
-            <button onclick="sendRequest('login', 'POST', '/api/v1/auth/login')">Login</button>
+            <button type="button" onclick="sendRequest('login', 'POST', '/api/v1/auth/login', false, event)">Login</button>
             <div id="res-login" class="response-box"></div>
         </div>
 
-        <!-- Get Me -->
         <div class="api-card get" id="get-me">
             <div class="endpoint-header">
                 <span class="method-badge">GET</span>
                 <span class="url">/api/v1/users/me</span>
             </div>
-            <p class="desc">Melihat data diri (Butuh Token).</p>
-            <button onclick="sendRequest('get-me', 'GET', '/api/v1/users/me', true)">Get Profile</button>
+            <p>Melihat profil user yang sedang login (Butuh Token).</p>
+            <button type="button" onclick="sendRequest('get-me', 'GET', '/api/v1/users/me', true, event)">Get My Profile</button>
             <div id="res-get-me" class="response-box"></div>
         </div>
 
-        <!-- Update Me -->
         <div class="api-card patch" id="update-me">
             <div class="endpoint-header">
                 <span class="method-badge">PATCH</span>
                 <span class="url">/api/v1/users/me</span>
             </div>
-            <p class="desc">Update nama profil.</p>
+            <p>Update profil user.</p>
             <div class="input-group">
                 <label>Body (JSON)</label>
                 <textarea id="body-update-me">{
-  "name": "Petani Sukses Abadi"
+  "name": "Nama Baru Bos"
 }</textarea>
             </div>
-            <button onclick="sendRequest('update-me', 'PATCH', '/api/v1/users/me', true)">Update Profile</button>
+            <button type="button" onclick="sendRequest('update-me', 'PATCH', '/api/v1/users/me', true, event)">Update Profile</button>
             <div id="res-update-me" class="response-box"></div>
         </div>
 
-        <!-- SECTION: FORUM -->
-        <h2 class="section-title">Forum & QnA</h2>
+        <h2 class="section-title">2. Market & Products</h2>
 
-        <!-- Get Feed -->
-        <div class="api-card get" id="feed">
+        <div class="api-card post" id="create-prod">
             <div class="endpoint-header">
-                <span class="method-badge">GET</span>
-                <span class="url">/api/v1/questions</span>
+                <span class="method-badge">POST</span>
+                <span class="url">/api/v1/market/products</span>
             </div>
-            <p class="desc">Melihat semua pertanyaan. Jika login, status <code>is_liked</code> akan menyesuaikan.</p>
-            <button onclick="sendRequest('feed', 'GET', '/api/v1/questions', true)">Get Feed</button>
-            <div id="res-feed" class="response-box"></div>
+            <p>Membuat postingan produk baru.</p>
+            <div class="input-group">
+                <label>Body (JSON)</label>
+                <textarea id="body-create-prod">{
+  "name": "Pupuk Organik Super",
+  "description": "Kualitas terbaik untuk padi",
+  "price": 50000,
+  "stock": 100
+}</textarea>
+            </div>
+            <button type="button" onclick="sendRequest('create-prod', 'POST', '/api/v1/market/products', true, event)">Create Product</button>
+            <div id="res-create-prod" class="response-box"></div>
         </div>
 
-        <!-- Create Question -->
+        <div class="api-card post" id="upload-img">
+            <div class="endpoint-header">
+                <span class="method-badge">POST</span>
+                <span class="url">/api/v1/market/products/<span class="id-param">{id}</span>/upload</span>
+            </div>
+            <h3>📸 Upload Gambar (Cloudinary)</h3>
+            <p>Upload file gambar untuk produk. Masukkan ID Produk dari hasil Create Product.</p>
+
+            <div class="input-group">
+                <label>Product ID</label>
+                <input type="text" id="upload-prod-id" placeholder="Paste ID Produk disini...">
+            </div>
+            <div class="input-group">
+                <label>Pilih File Gambar</label>
+                <input type="file" id="upload-file-input" accept="image/*">
+            </div>
+            
+            <button type="button" onclick="uploadImage(event)">Upload ke Cloudinary</button>
+
+            <div id="res-upload" class="response-box"></div>
+            <img id="img-preview" class="preview-img" alt="Hasil Upload">
+        </div>
+
+        <div class="api-card get" id="detail-prod">
+            <div class="endpoint-header">
+                <span class="method-badge">GET</span>
+                <span class="url">/api/v1/market/products/<span class="id-param">{id}</span></span>
+            </div>
+            <p>Cek detail produk untuk melihat URL gambar.</p>
+            <div class="input-group">
+                <label>Product ID</label>
+                <input type="text" id="id-detail-prod" placeholder="Product ID...">
+            </div>
+            <button type="button" onclick="sendRequestWithID('detail-prod', 'GET', '/api/v1/market/products/{id}', false, event)">Get Detail</button>
+            <div id="res-detail-prod" class="response-box"></div>
+        </div>
+
+        <h2 class="section-title">3. Forum & QnA</h2>
+
         <div class="api-card post" id="create-q">
             <div class="endpoint-header">
                 <span class="method-badge">POST</span>
                 <span class="url">/api/v1/questions</span>
             </div>
-            <p class="desc">Membuat pertanyaan baru.</p>
+            <p>Membuat pertanyaan baru.</p>
             <div class="input-group">
                 <label>Body (JSON)</label>
                 <textarea id="body-create-q">{
@@ -321,35 +404,33 @@
   "category": "Penyakit"
 }</textarea>
             </div>
-            <button onclick="sendRequest('create-q', 'POST', '/api/v1/questions', true)">Post Question</button>
+            <button type="button" onclick="sendRequest('create-q', 'POST', '/api/v1/questions', true, event)">Post Question</button>
             <div id="res-create-q" class="response-box"></div>
         </div>
 
-        <!-- Get Detail Question -->
         <div class="api-card get" id="detail-q">
             <div class="endpoint-header">
                 <span class="method-badge">GET</span>
                 <span class="url">/api/v1/questions/<span class="id-param">{id}</span></span>
             </div>
-            <p class="desc">Melihat detail pertanyaan beserta jawaban.</p>
+            <p>Melihat detail pertanyaan beserta jawaban.</p>
             <div class="input-group">
-                <label>Question ID (UUID)</label>
-                <input type="text" id="id-detail-q" placeholder="e.g. 550e8400-e29b...">
+                <label>Question ID</label>
+                <input type="text" id="id-detail-q" placeholder="Question UUID...">
             </div>
-            <button onclick="sendRequestWithID('detail-q', 'GET', '/api/v1/questions/{id}', true)">Get Detail</button>
+            <button type="button" onclick="sendRequestWithID('detail-q', 'GET', '/api/v1/questions/{id}', true, event)">Get Detail</button>
             <div id="res-detail-q" class="response-box"></div>
         </div>
 
-        <!-- Add Answer -->
         <div class="api-card post" id="answer-q">
             <div class="endpoint-header">
                 <span class="method-badge">POST</span>
                 <span class="url">/api/v1/questions/<span class="id-param">{id}</span>/answers</span>
             </div>
-            <p class="desc">Menambahkan jawaban/komentar ke pertanyaan.</p>
+            <p>Menjawab pertanyaan.</p>
             <div class="input-group">
-                <label>Question ID (UUID)</label>
-                <input type="text" id="id-answer-q" placeholder="Paste ID Pertanyaan disini...">
+                <label>Question ID</label>
+                <input type="text" id="id-answer-q" placeholder="Question UUID...">
             </div>
             <div class="input-group">
                 <label>Body (JSON)</label>
@@ -357,38 +438,22 @@
   "content": "Coba cek pangkal batangnya, mungkin ada wereng."
 }</textarea>
             </div>
-            <button onclick="sendRequestWithID('answer-q', 'POST', '/api/v1/questions/{id}/answers', true)">Submit Answer</button>
+            <button type="button" onclick="sendRequestWithID('answer-q', 'POST', '/api/v1/questions/{id}/answers', true, event)">Submit Answer</button>
             <div id="res-answer-q" class="response-box"></div>
         </div>
 
-        <!-- Like Question -->
         <div class="api-card post" id="like-q">
             <div class="endpoint-header">
                 <span class="method-badge">POST</span>
                 <span class="url">/api/v1/questions/<span class="id-param">{id}</span>/like</span>
             </div>
-            <p class="desc">Like / Unlike pertanyaan.</p>
+            <p>Like / Unlike pertanyaan.</p>
             <div class="input-group">
-                <label>Question ID (UUID)</label>
-                <input type="text" id="id-like-q" placeholder="Paste ID Pertanyaan disini...">
+                <label>Question ID</label>
+                <input type="text" id="id-like-q" placeholder="Question UUID...">
             </div>
-            <button onclick="sendRequestWithID('like-q', 'POST', '/api/v1/questions/{id}/like', true)">Toggle Like</button>
+            <button type="button" onclick="sendRequestWithID('like-q', 'POST', '/api/v1/questions/{id}/like', true, event)">Toggle Like</button>
             <div id="res-like-q" class="response-box"></div>
-        </div>
-
-        <!-- Favorite Question -->
-        <div class="api-card post" id="fav-q">
-            <div class="endpoint-header">
-                <span class="method-badge">POST</span>
-                <span class="url">/api/v1/questions/<span class="id-param">{id}</span>/favorite</span>
-            </div>
-            <p class="desc">Simpan ke Favorit.</p>
-            <div class="input-group">
-                <label>Question ID (UUID)</label>
-                <input type="text" id="id-fav-q" placeholder="Paste ID Pertanyaan disini...">
-            </div>
-            <button onclick="sendRequestWithID('fav-q', 'POST', '/api/v1/questions/{id}/favorite', true)">Toggle Favorite</button>
-            <div id="res-fav-q" class="response-box"></div>
         </div>
 
     </main>
@@ -397,52 +462,79 @@
         const BASE_URL = "http://localhost:8080";
         let authToken = localStorage.getItem('authToken') || "";
 
-        // Init Check
         updateAuthUI();
 
-        // 1. Core Request Function
-        async function sendRequest(elementId, method, endpoint, requiresAuth = false) {
-            await executeFetch(elementId, method, BASE_URL + endpoint, requiresAuth, null);
-        }
+        function updateAuthUI() {
+            const statusContainer = document.getElementById('auth-status-container');
+            const tokenDisplay = document.getElementById('token-display');
+            const tokenInput = document.getElementById('manual-token');
 
-        // 2. Request With ID Param Function
-        async function sendRequestWithID(elementId, method, endpointTemplate, requiresAuth = false) {
-            const idInput = document.getElementById(`id-${elementId}`);
-            const id = idInput.value.trim();
-
-            if (!id) {
-                alert("Mohon isi ID terlebih dahulu!");
-                return;
+            if (authToken) {
+                statusContainer.innerHTML = `<div class="status-badge status-ok">✅ TERAUTENTIKASI</div>`;
+                tokenDisplay.innerText = authToken;
+                tokenDisplay.style.display = 'block';
+                tokenInput.value = authToken;
+            } else {
+                statusContainer.innerHTML = `<div class="status-badge status-no">❌ BELUM LOGIN</div>`;
+                tokenDisplay.innerText = '';
+                tokenDisplay.style.display = 'none';
+                tokenInput.value = '';
             }
-
-            const finalUrl = BASE_URL + endpointTemplate.replace('{id}', id);
-            await executeFetch(elementId, method, finalUrl, requiresAuth, null);
         }
 
-        // 3. Main Fetch Logic
-        async function executeFetch(elementId, method, url, requiresAuth, forcedBody) {
+        function saveTokenManual() {
+            const val = document.getElementById('manual-token').value.trim();
+            if (val) {
+                authToken = val;
+                localStorage.setItem('authToken', val);
+                alert("Token saved manually!");
+            }
+            updateAuthUI();
+        }
+
+        function logout() {
+            authToken = "";
+            localStorage.removeItem('authToken');
+            updateAuthUI();
+        }
+
+        async function sendRequest(elementId, method, endpoint, requiresAuth = false, event) {
+            // CRITICAL FIX: Prevent default behavior
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
             const resBox = document.getElementById(`res-${elementId}`);
+            
             resBox.style.display = 'block';
             resBox.innerText = 'Loading...';
             resBox.className = 'response-box';
 
-            // Headers
+            setTimeout(() => {
+                resBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+
             const headers = { 'Content-Type': 'application/json' };
-            if (requiresAuth && authToken) {
+            if (requiresAuth) {
+                if (!authToken) {
+                    resBox.innerText = "Error: Token kosong! Silakan Login dulu.";
+                    resBox.classList.add('error');
+                    return;
+                }
                 headers['Authorization'] = `Bearer ${authToken}`;
             }
 
-            // Body
-            let body = forcedBody;
-            if (!body && (method === 'POST' || method === 'PATCH' || method === 'PUT')) {
+            let body = null;
+            if (['POST', 'PUT', 'PATCH'].includes(method)) {
                 const bodyInput = document.getElementById(`body-${elementId}`);
-                if (bodyInput) {
+                if (bodyInput && bodyInput.value.trim()) {
                     try {
-                        body = bodyInput.value;
-                        // Validate JSON
-                        JSON.parse(body);
+                        const raw = bodyInput.value;
+                        JSON.parse(raw);
+                        body = raw;
                     } catch (e) {
-                        resBox.innerText = "Error: JSON Body tidak valid.\n" + e.message;
+                        resBox.innerText = "Error: JSON Body tidak valid (Syntax Error).\n" + e.message;
                         resBox.classList.add('error');
                         return;
                     }
@@ -450,61 +542,165 @@
             }
 
             try {
-                const res = await fetch(url, { method, headers, body });
-                const data = await res.json();
+                const response = await fetch(BASE_URL + endpoint, {
+                    method: method,
+                    headers: headers,
+                    body: body
+                });
 
-                // Format JSON output
-                const jsonStr = JSON.stringify(data, null, 2);
-                resBox.innerText = `Status: ${res.status} ${res.statusText}\n\n${jsonStr}`;
+                const data = await response.json();
+                const output = `Status: ${response.status} ${response.statusText}\n\n` + JSON.stringify(data, null, 2);
+                resBox.innerText = output;
 
-                if (res.ok) {
+                if (response.ok) {
                     resBox.classList.add('success');
-                    
-                    // Special Logic: Login Success
+
                     if (elementId === 'login' && data.data && data.data.token) {
                         authToken = data.data.token;
                         localStorage.setItem('authToken', authToken);
                         updateAuthUI();
                     }
+
+                    if (elementId === 'create-prod' && data.data && data.data.id) {
+                        const newId = data.data.id;
+                        if(document.getElementById('upload-prod-id')) document.getElementById('upload-prod-id').value = newId;
+                        if(document.getElementById('id-detail-prod')) document.getElementById('id-detail-prod').value = newId;
+                        resBox.innerText += "\n\n[INFO] ID Produk otomatis disalin!";
+                    }
                 } else {
                     resBox.classList.add('error');
                 }
+
             } catch (err) {
-                resBox.innerText = `Network Error: ${err.message}\nPastikan backend Go berjalan di port 8080.`;
+                resBox.innerText = `Network Error: ${err.message}\n(Pastikan server Go jalan di ${BASE_URL})`;
                 resBox.classList.add('error');
             }
+            
+            resBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        // Auth Helpers
-        function updateAuthUI() {
-            const statusEl = document.getElementById('auth-status');
-            const tokenEl = document.getElementById('token-display');
-            const inputEl = document.getElementById('manual-token');
-
-            if (authToken) {
-                statusEl.innerHTML = "✅ <b>LOGIN SUKSES</b>";
-                statusEl.style.color = "#00e676";
-                tokenEl.style.display = "block";
-                tokenEl.innerText = authToken;
-                inputEl.value = authToken;
-            } else {
-                statusEl.innerHTML = "❌ <b>BELUM LOGIN</b>";
-                statusEl.style.color = "#f44336";
-                tokenEl.style.display = "none";
-                inputEl.value = "";
+        async function sendRequestWithID(elementId, method, endpointTemplate, requiresAuth = false, event) {
+            // CRITICAL FIX: Prevent default behavior
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
             }
+            
+            const idInput = document.getElementById(`id-${elementId}`);
+            if (!idInput || !idInput.value.trim()) {
+                alert("Masukkan ID terlebih dahulu!");
+                return;
+            }
+            const realEndpoint = endpointTemplate.replace('{id}', idInput.value.trim());
+            
+            const resBox = document.getElementById(`res-${elementId}`);
+            
+            resBox.style.display = 'block';
+            resBox.innerText = 'Loading...';
+            resBox.className = 'response-box';
+
+            setTimeout(() => {
+                resBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+
+            const headers = { 'Content-Type': 'application/json' };
+            if (requiresAuth) {
+                if (!authToken) {
+                    resBox.innerText = "Error: Token kosong! Silakan Login dulu.";
+                    resBox.classList.add('error');
+                    return;
+                }
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            let body = null;
+            if (['POST', 'PUT', 'PATCH'].includes(method)) {
+                const bodyInput = document.getElementById(`body-${elementId}`);
+                if (bodyInput && bodyInput.value.trim()) {
+                    try {
+                        JSON.parse(bodyInput.value);
+                        body = bodyInput.value;
+                    } catch (e) {
+                        resBox.innerText = "Error: JSON tidak valid.\n" + e.message;
+                        resBox.classList.add('error');
+                        return;
+                    }
+                }
+            }
+
+            try {
+                const response = await fetch(BASE_URL + realEndpoint, {
+                    method: method,
+                    headers: headers,
+                    body: body
+                });
+
+                const data = await response.json();
+                const output = `Status: ${response.status} ${response.statusText}\n\n` + JSON.stringify(data, null, 2);
+                resBox.innerText = output;
+
+                if (response.ok) {
+                    resBox.classList.add('success');
+                } else {
+                    resBox.classList.add('error');
+                }
+
+            } catch (err) {
+                resBox.innerText = `Network Error: ${err.message}`;
+                resBox.classList.add('error');
+            }
+
+            resBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        function saveTokenManual() {
-            const val = document.getElementById('manual-token').value.trim();
-            if(val) {
-                authToken = val;
-                localStorage.setItem('authToken', val);
-                updateAuthUI();
-            } else {
-                authToken = "";
-                localStorage.removeItem('authToken');
-                updateAuthUI();
+        async function uploadImage(event) {
+            // CRITICAL FIX: Prevent default behavior
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            const id = document.getElementById('upload-prod-id').value.trim();
+            const fileInput = document.getElementById('upload-file-input');
+            const resArea = document.getElementById('res-upload');
+            const imgPreview = document.getElementById('img-preview');
+
+            resArea.style.display = 'block';
+            resArea.innerText = 'Uploading...';
+            resArea.className = 'response-box';
+            imgPreview.style.display = 'none';
+
+            if (!authToken) return alert("Login dulu!");
+            if (!id) return alert("Product ID kosong!");
+            if (!fileInput.files[0]) return alert("Pilih file gambar!");
+
+            const formData = new FormData();
+            formData.append("image", fileInput.files[0]);
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/v1/market/products/${id}/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+                resArea.innerText = `Status: ${response.status}\n\n` + JSON.stringify(data, null, 2);
+
+                if (response.ok) {
+                    resArea.classList.add('success');
+                    if (data.data && data.data.image_url) {
+                        imgPreview.src = data.data.image_url;
+                        imgPreview.style.display = 'block';
+                    }
+                } else {
+                    resArea.classList.add('error');
+                }
+            } catch (err) {
+                resArea.innerText = `Error: ${err.message}`;
+                resArea.classList.add('error');
             }
         }
     </script>

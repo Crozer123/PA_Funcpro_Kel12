@@ -16,22 +16,30 @@ func main() {
 	db := database.NewConnection()
 
 	db.AutoMigrate(
-		&domain.User{}, 
+		&domain.User{},
+		&domain.Product{}, 
+		&domain.Article{},
 		&domain.Question{}, 
 		&domain.Answer{},
 		&domain.QuestionLike{}, 
 		&domain.Favorite{},
 	)
 
+
 	userRepoGetByID := repository.NewGetUserByIDRepository(db)
 	userRepoGetByEmail := repository.NewGetUserByEmailRepository(db)
 	userRepoCreate := repository.NewCreateUserRepository(db)
 	userRepoUpdate := repository.NewUpdateUserRepository(db)
 
-	createUserService := service.NewCreateUser(userRepoCreate, userRepoGetByEmail)
-	getUserByIDService := service.NewGetUserByID(userRepoGetByID)
-	loginService := service.NewLoginService(userRepoGetByEmail)
-	updateUserService := service.NewUpdateUser(userRepoUpdate)
+	prodRepoCreate := repository.NewCreateProductRepository(db)
+	prodRepoGetAll := repository.NewGetAllProductsRepository(db)
+	prodRepoGetByID := repository.NewGetProductByIDRepository(db)
+	prodRepoUpdate := repository.NewUpdateProductRepository(db)
+	prodRepoDelete := repository.NewDeleteProductRepository(db)
+
+	articlerepoCreate := repository.NewCreateArticleRepository(db)
+	articlerepoGetByID := repository.NewGetArticleByIDRepository(db)
+	articlerepoGetAll := repository.NewGetAllArticlesRepository(db)
 
 	qRepoCreate := repository.NewCreateQuestionRepository(db)
 	qRepoGet := repository.NewGetAllQuestionsRepository(db)
@@ -40,6 +48,23 @@ func main() {
 	likeRepo := repository.NewToggleQuestionLikeRepository(db)
 	favRepo := repository.NewToggleFavoriteRepository(db)
 
+
+	createUserService := service.NewCreateUser(userRepoCreate, userRepoGetByEmail)
+	getUserByIDService := service.NewGetUserByID(userRepoGetByID)
+	loginService := service.NewLoginService(userRepoGetByEmail)
+	updateUserService := service.NewUpdateUser(userRepoUpdate)
+
+	svcCreateProduct := service.NewCreateProductService(prodRepoCreate)
+	svcGetAllProducts := service.NewGetAllProductsService(prodRepoGetAll)
+	svcGetProductByID := service.NewGetProductByIDService(prodRepoGetByID)
+	svcUpdateProduct := service.NewUpdateProductService(prodRepoUpdate, prodRepoGetByID)
+	svcDeleteProduct := service.NewDeleteProductService(prodRepoDelete, prodRepoGetByID)
+	svcUploadImage := service.NewUploadProductImageService(prodRepoGetByID, prodRepoUpdate)
+
+	svccreatearticle := service.NewCreateArticleService(articlerepoCreate)
+	svcgetarticlebyid := service.NewGetArticleByIDService(articlerepoGetByID)
+	svcgetallarticles := service.NewGetAllArticlesService(articlerepoGetAll)
+
 	svcCreateQ := service.NewCreateQuestion(qRepoCreate)
 	svcGetFeed := service.NewGetFeed(qRepoGet)
 	svcGetDetail := service.NewGetQuestionDetail(qRepoDetail)
@@ -47,15 +72,26 @@ func main() {
 	svcLike := service.NewToggleLike(likeRepo)
 	svcFav := service.NewToggleFav(favRepo)
 
+	
 	log.SetFlags(0)
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /api/v1/auth/register", handle.HandleCreateUser(createUserService))
 	mux.HandleFunc("POST /api/v1/auth/login", handle.HandleLogin(loginService))
-	
 	mux.HandleFunc("GET /api/v1/users/{id}", handle.HandleGetUserByID(getUserByIDService))
 	mux.HandleFunc("GET /api/v1/users/me", middleware.AuthMiddleware(handle.HandleGetMe(getUserByIDService)))
 	mux.HandleFunc("PATCH /api/v1/users/me", middleware.AuthMiddleware(handle.HandleUpdateMe(updateUserService)))
+
+	mux.HandleFunc("POST /api/v1/market/products", middleware.AuthMiddleware(handle.HandleCreateProduct(svcCreateProduct)))
+	mux.HandleFunc("GET /api/v1/market/products", handle.HandleGetAllProducts(svcGetAllProducts))
+	mux.HandleFunc("GET /api/v1/market/products/{id}", handle.HandleGetProductByID(svcGetProductByID))
+	mux.HandleFunc("PUT /api/v1/market/products/{id}", middleware.AuthMiddleware(handle.HandleUpdateProduct(svcUpdateProduct)))
+	mux.HandleFunc("DELETE /api/v1/market/products/{id}", middleware.AuthMiddleware(handle.HandleDeleteProduct(svcDeleteProduct)))
+	mux.HandleFunc("POST /api/v1/market/products/{id}/upload", middleware.AuthMiddleware(handle.HandleUploadProductImage(svcUploadImage)))
+
+	mux.HandleFunc("POST /api/v1/articles", middleware.AuthMiddleware(handle.HandleCreateArticle(svccreatearticle)))
+	mux.HandleFunc("GET /api/v1/articles", handle.HandleGetAllArticles(svcgetallarticles))
+	mux.HandleFunc("GET /api/v1/articles/{id}", handle.HandleGetArticleByID(svcgetarticlebyid))
 
 	mux.HandleFunc("GET /api/v1/questions", middleware.AuthMiddlewareOptional(handle.HandleGetFeed(svcGetFeed)))
 	mux.HandleFunc("POST /api/v1/questions", middleware.AuthMiddleware(handle.HandleCreateQuestion(svcCreateQ)))
@@ -68,6 +104,6 @@ func main() {
 	finalHandler = middleware.Logging(finalHandler)
 	finalHandler = middleware.CORSMiddleware(finalHandler)
 
-	log.Println("Server running on port :8080")
+	log.Println("Server running at http://localhost:8080")
 	http.ListenAndServe(":8080", finalHandler)
 }
