@@ -4,12 +4,12 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/Dzox13524/PA_Funcpro_Kel12/internal/domain"
 	handle "github.com/Dzox13524/PA_Funcpro_Kel12/internal/handler"
 	"github.com/Dzox13524/PA_Funcpro_Kel12/internal/middleware"
 	"github.com/Dzox13524/PA_Funcpro_Kel12/internal/platform/database"
 	"github.com/Dzox13524/PA_Funcpro_Kel12/internal/repository"
 	"github.com/Dzox13524/PA_Funcpro_Kel12/internal/service"
-	"github.com/Dzox13524/PA_Funcpro_Kel12/internal/domain"
 )
 
 func main() {
@@ -36,6 +36,9 @@ func main() {
 	prodRepoGetByID := repository.NewGetProductByIDRepository(db)
 	prodRepoUpdate := repository.NewUpdateProductRepository(db)
 	prodRepoDelete := repository.NewDeleteProductRepository(db)
+	prodRepoSearch := repository.NewSearchProductsRepository(db)
+	prodRepoMetaCrops := repository.NewGetMetaCropsRepository(db)
+	prodRepoMetaRegions := repository.NewGetMetaRegionsRepository(db)
 
 	articlerepoCreate := repository.NewCreateArticleRepository(db)
 	articlerepoGetByID := repository.NewGetArticleByIDRepository(db)
@@ -60,7 +63,10 @@ func main() {
 	svcUpdateProduct := service.NewUpdateProductService(prodRepoUpdate, prodRepoGetByID)
 	svcDeleteProduct := service.NewDeleteProductService(prodRepoDelete, prodRepoGetByID)
 	svcUploadImage := service.NewUploadProductImageService(prodRepoGetByID, prodRepoUpdate)
-
+	svcSearchProducts := service.NewSearchProductsService(prodRepoSearch)
+	svcMetaCrops := service.NewGetMetaCropsService(prodRepoMetaCrops)
+	svcMetaRegions := service.NewGetMetaRegionsService(prodRepoMetaRegions)
+	
 	svccreatearticle := service.NewCreateArticleService(articlerepoCreate)
 	svcgetarticlebyid := service.NewGetArticleByIDService(articlerepoGetByID)
 	svcgetallarticles := service.NewGetAllArticlesService(articlerepoGetAll)
@@ -88,7 +94,9 @@ func main() {
 	mux.HandleFunc("PUT /api/v1/market/products/{id}", middleware.AuthMiddleware(handle.HandleUpdateProduct(svcUpdateProduct)))
 	mux.HandleFunc("DELETE /api/v1/market/products/{id}", middleware.AuthMiddleware(handle.HandleDeleteProduct(svcDeleteProduct)))
 	mux.HandleFunc("POST /api/v1/market/products/{id}/upload", middleware.AuthMiddleware(handle.HandleUploadProductImage(svcUploadImage)))
-
+	mux.HandleFunc("GET /api/v1/market/search", handle.HandleSearchProducts(svcSearchProducts))
+	mux.HandleFunc("GET /api/v1/market/meta/crops", handle.HandleGetMetaCrops(svcMetaCrops))
+	mux.HandleFunc("GET /api/v1/market/meta/regions", handle.HandleGetMetaRegions(svcMetaRegions))
 	mux.HandleFunc("POST /api/v1/articles", middleware.AuthMiddleware(handle.HandleCreateArticle(svccreatearticle)))
 	mux.HandleFunc("GET /api/v1/articles", handle.HandleGetAllArticles(svcgetallarticles))
 	mux.HandleFunc("GET /api/v1/articles/{id}", handle.HandleGetArticleByID(svcgetarticlebyid))

@@ -18,8 +18,10 @@ type GetAllProductsServiceFunc func(ctx context.Context) ([]domain.Product, erro
 type GetProductByIDServiceFunc func(ctx context.Context, id string) (domain.Product, error)
 type UpdateProductServiceFunc func(ctx context.Context, id string, req domain.UpdateProductRequest, sellerID string) (domain.Product, error)
 type DeleteProductServiceFunc func(ctx context.Context, id string, sellerID string) error
-
 type UploadProductImageFunc func(ctx context.Context, id string, sellerID string, file io.Reader) (string, error)
+type SearchProductsServiceFunc func(ctx context.Context, query string) ([]domain.Product, error)
+type GetMetaCropsServiceFunc func(ctx context.Context) ([]string, error)
+type GetMetaRegionsServiceFunc func(ctx context.Context) ([]string, error)
 
 func NewCreateProductService(createRepo repository.CreateProductRepoFunc) CreateProductServiceFunc {
 	return func(ctx context.Context, sellerID string, req domain.CreateProductRequest) (domain.Product, error) {
@@ -30,6 +32,8 @@ func NewCreateProductService(createRepo repository.CreateProductRepoFunc) Create
 			Description: req.Description,
 			Price:       req.Price,
 			Stock:       req.Stock,
+			Category:    req.Category,
+			Location:    req.Location,
 		}
 		return createRepo(ctx, newProduct)
 	}
@@ -95,29 +99,35 @@ func NewUploadProductImageService(getByIDRepo repository.GetProductByIDRepoFunc,
 		cldName := "djf8xdry2"
 		cldKey := "688323824432518"
 		cldSecret := "WfBMEpA8JBB3xE835rHkKhBKl_A"
-
-		// 4. Buat koneksi ke Cloudinary
 		cld, err := cloudinary.NewFromParams(cldName, cldKey, cldSecret)
 		if err != nil {
 			return "", err
 		}
-
-		// 5. Proses Upload
-		// Kita upload file yang dikirim user ke folder "toko-belajar" di Cloudinary
 		uploadResult, err := cld.Upload.Upload(ctx, file, uploader.UploadParams{
 			Folder: "toko-belajar", 
-			PublicID: id, // Nama file di Cloudinary disamakan dengan ID Produk
+			PublicID: id, 
 		})
 		if err != nil {
 			return "", err
 		}
-
-		// 6. Ambil URL Asli (SecureURL = https)
 		realURL := uploadResult.SecureURL
-
-		// 7. Simpan URL Asli ke Database
 		_, err = updateRepo(ctx, id, map[string]interface{}{"image_url": realURL})
 		
 		return realURL, err
+	}
+}
+func NewSearchProductsService(searchRepo repository.SearchProductsRepoFunc) SearchProductsServiceFunc {
+	return func(ctx context.Context, query string) ([]domain.Product, error) {
+		return searchRepo(ctx, query)
+	}
+}
+func NewGetMetaCropsService(getMetaCropsRepo repository.GetMetaCropsRepoFunc) GetMetaCropsServiceFunc {
+	return func(ctx context.Context) ([]string, error) {
+		return getMetaCropsRepo(ctx)
+	}
+}
+func NewGetMetaRegionsService(getMetaRegionsRepo repository.GetMetaRegionsRepoFunc) GetMetaRegionsServiceFunc {
+	return func(ctx context.Context) ([]string, error) {
+		return getMetaRegionsRepo(ctx)
 	}
 }
